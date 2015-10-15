@@ -1,40 +1,26 @@
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-//
-// # IMPApp
-// 
-// Big wrapper around all of the IMP functionality. Doesn't do too much apart
-// from hold the state for the application and handle all of the changes to the
-// UI.
-// 
-// - IMPApp
-//   - APIType
-//   - Filters
-//   - Controls
-//   - Thumbnails
-//
-// Also deals with the loading state and the API calls to get the data.
-//
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 var CDApp = React.createClass({
     propTypes: {
-    	gender: React.PropTypes.string,
+    	value: React.PropTypes.number,
     	filename: React.PropTypes.string,
-    	loading: React.PropTypes.bool
+    	step: React.PropTypes.number
     },
     getDefaultProps: function() {
         return {
-        	// 0 = not known, 1 = male, 2 = female, 9 = not applicable
-        	gender: 2,
+        	gender: 2, // 0 = not known, 1 = male, 2 = female, 9 = not applicable
         	filename: '',
-        	loading: false
+        	step: 1 // 1 = choose, 2 = processing, 3 = results, 4 = error
         };
     },
     getInitialState: function() {
         return {
         	gender: this.props.gender,
         	filename: this.props.filename,
-        	loading: this.props.loading,
+        	step: this.props.step,
+        	class: 'cdapp -state-' + this.props.step,
+        	selection: {},
+        	alike: {}
         };
     },
     _handleGenderChange: function(gender) {
@@ -47,9 +33,10 @@ var CDApp = React.createClass({
             filename: filename
         });
     },
-    _handleLoadingChange: function(loading) {
+    _handleStepChange: function(step) {
         this.setState({
-            loading: loading
+            step: step,
+            class: 'cdapp -state-' + step
         });
     },
     _handleSubmit: function() {
@@ -58,9 +45,9 @@ var CDApp = React.createClass({
         }
     },
     _getResults: function() {
-        this._handleLoadingChange(true);
+        this._handleStepChange(2);
         var url = 'TODO';
-        $.ajax({
+        /*$.ajax({
             crossDomain: true,
             url: url, 
             type: 'GET',
@@ -80,26 +67,47 @@ var CDApp = React.createClass({
                 });
             }.bind(this),
             error: function(qXHR, textStatus, errorThrown) {
-                // TODO
+                this._handleStepChange(0);
             },
             complete: function() {
-                this._handleLoadingChange(false);
+                this._handleStepChange(3);
             }.bind(this)
-        });
+        });*/
+		/* TEST */
+		debugger;
+        var selection = { name: 'Peewee Herman', url: 'https://pbs.twimg.com/profile_images/362060137/Pee-wee_Twitter_Profile.png' },
+        	alike = { name: 'Donald Trump', url: 'http://static6.businessinsider.com/image/55918b77ecad04a3465a0a63/nbc-fires-donald-trump-after-he-calls-mexicans-rapists-and-drug-runners.jpg' }
+        ;
+		this.setState({
+			selection: selection,
+			alike: alike
+		});
+		/* TEST */
     },
     render: function() {
         return (
-        	<div className="cdapp">
-	            <div className="beginning">
-	            	GENDER and FILENAME
-	            </div>
-	            <div className="middle">
+        	<article className={this.state.class}>
+	            <section className="choose">
+	            	<Form
+	            		_handleFilenameChange={this._handleFilenameChange}
+	            		_handleGenderChange={this._handleGenderChange}
+	            		_handleSubmit={this._handleSubmit}
+	            	/>
+	            </section>
+	            <section className="processing">
 	            	LOADING
-	            </div>
-	            <div className="end">
-	            	RESULTS
-	            </div>
-	        </div>
+	            </section>
+	            <section className="results">
+	            	<Results
+	            		step={this.state.step}
+	            		selection={this.state.selection}
+	            		alike={this.state.alike}
+	            	/>
+	            </section>
+	            <section className="error">
+	            	ERROR
+	            </section>
+	        </article>
         );
     }
 });
