@@ -72,6 +72,7 @@ class ImageHandler:
 
         return image
 
+    @tornado.gen.coroutine
     def list_matches(self, p):
         '''
         Queries the database for all the celebrity relationships.
@@ -98,6 +99,7 @@ class ImageHandler:
 
         return names
 
+    @tornado.gen.coroutine
     def to_json(self, *persons):
         '''
         Sends back the data as JSON
@@ -109,3 +111,10 @@ class ImageHandler:
                           'orientation':person.orientation}) 
 
         return json.dumps(data)
+
+
+'''**********************************************
+Endpoints
+**********************************************'''
+application = tornado.web.Application([
+    (r'/process', ImageHandler)], gzip = True)
