@@ -2,7 +2,7 @@
 
 var Results = React.createClass({
     render: function() {
-        if (this.props.step == 2) {
+        if (this.props.step == 3) {
 	        return (
 	        	<div>
 					You should date:

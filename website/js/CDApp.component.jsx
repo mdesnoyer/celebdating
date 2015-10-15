@@ -3,22 +3,22 @@
 var CDApp = React.createClass({
     propTypes: {
     	value: React.PropTypes.number,
-    	filename: React.PropTypes.string,
+    	file: React.PropTypes.string,
     	step: React.PropTypes.number
     },
     getDefaultProps: function() {
         return {
         	gender: 2, // 0 = not known, 1 = male, 2 = female, 9 = not applicable
-        	filename: '',
+        	file: '',
         	step: 1 // 1 = choose, 2 = processing, 3 = results, 4 = error
         };
     },
     getInitialState: function() {
         return {
         	gender: this.props.gender,
-        	filename: this.props.filename,
+        	file: this.props.file,
         	step: this.props.step,
-        	class: 'cdapp -state-' + this.props.step,
+        	class: 'cdapp state-' + this.props.step,
         	selection: {},
         	alike: {}
         };
@@ -28,19 +28,25 @@ var CDApp = React.createClass({
             gender: gender
         });
     },
-    _handleFilenameChange: function(filename) {
-        this.setState({
-            filename: filename
-        });
+    _handleFileChange: function(e) {
+        var self = this,
+            reader = new FileReader(),
+            file = e.target.files[0];
+        reader.onload = function(upload) {
+            self.setState({
+                file: upload.target.result,
+            });
+        }
+        reader.readAsDataURL(file);
     },
     _handleStepChange: function(step) {
         this.setState({
             step: step,
-            class: 'cdapp -state-' + step
+            class: 'cdapp state-' + step
         });
     },
     _handleSubmit: function() {
-        if (this.state.gender !== '' && this.state.filename !== '') {
+        if (this.state.gender !== '' && this.state.file !== '') {
             this._getResults();
         }
     },
@@ -54,7 +60,7 @@ var CDApp = React.createClass({
             dataType: 'json',
             jsonp: false,
             data: {
-                filename: filename,
+                file: file,
                 gender: gender
             },
             success: function(data, textStatus, jqXHR) {
@@ -74,7 +80,6 @@ var CDApp = React.createClass({
             }.bind(this)
         });*/
 		/* TEST */
-		debugger;
         var selection = { name: 'Peewee Herman', url: 'https://pbs.twimg.com/profile_images/362060137/Pee-wee_Twitter_Profile.png' },
         	alike = { name: 'Donald Trump', url: 'http://static6.businessinsider.com/image/55918b77ecad04a3465a0a63/nbc-fires-donald-trump-after-he-calls-mexicans-rapists-and-drug-runners.jpg' }
         ;
@@ -82,6 +87,9 @@ var CDApp = React.createClass({
 			selection: selection,
 			alike: alike
 		});
+        setTimeout(function() {
+            this._handleStepChange(3);
+        }.bind(this), 2000);
 		/* TEST */
     },
     render: function() {
@@ -89,9 +97,10 @@ var CDApp = React.createClass({
         	<article className={this.state.class}>
 	            <section className="choose">
 	            	<Form
-	            		_handleFilenameChange={this._handleFilenameChange}
+	            		_handleFileChange={this._handleFileChange}
 	            		_handleGenderChange={this._handleGenderChange}
 	            		_handleSubmit={this._handleSubmit}
+                        gender={this.state.gender}
 	            	/>
 	            </section>
 	            <section className="processing">
