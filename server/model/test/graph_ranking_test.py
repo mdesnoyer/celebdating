@@ -71,9 +71,9 @@ class TestGraphRanking(unittest.TestCase):
         self.setup()
         gr = graph_ranking.GraphRanking(self.celebrities)
         user_face_data = np.array([0.3, 0.1, 0.2, 0.0, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9])
-        result = gr.find_dating(user_face_data, 'M')
-        print result
-        self.assertEqual(1, 2)
+        (celeb_id, dated_id) = gr.find_dating(user_face_data, 'M')
+        self.assertEqual(celeb_id, 'c2')
+        self.assertEqual(dated_id, 'd3')
 
 def main():
     unittest.main()

@@ -62,31 +62,14 @@ class GraphRanking(object):
         # For each of them, we want to get the average of similarity.
         max_similarity = 0
         for dated_id in top_dated_id_set:
-            is_dated_id_array = np.array([x == dated_id for x in self.dated_id_array])
+            is_dated_id_array = \
+                np.array([x == dated_id for x in self.dated_id_array])
             avg_score = np.mean(all_scores[is_dated_id_array])
-            print dated_id, is_dated_id_array, avg_score, all_scores[is_dated_id_array]
             if avg_score > max_similarity:
                 max_similarity = avg_score
                 max_dated_id = dated_id
-        return max_dated_id
 
-
-        # Initialize the data
-        distance_measures = {}
-        for celeb in self.celebrities:
-            if celeb["gender"] != user_prefer_gender:
-                continue
-            celeb_id = celeb["id"]
-            distance_dated = {}
-            for dated in celeb["dated"]:
-                dated_id = dated["id"]
-                dated_face_vector = dated["vector"]
-                distance_to_dated = get_distance(user_face_vector,
-                                                 dated_face_vector)
-
-                distance_dated[dated_id] = distance_to_dated
-
-        # Calculate the ranking
-        # The idea is to give it higher ratings for the closest matches.
-        # So for the faces or people who don't look alike, they are not
-        # to affect the matching results.
+        # Find the celebraty by dated_id
+        for i, dated_id in enumerate(self.dated_id_array):
+            if dated_id == max_dated_id:
+                return self.celeb_id_array[i], max_dated_id
