@@ -10,13 +10,13 @@ var Form = React.createClass({
             <form
                 onSubmit={this._handleSubmit}
             >
-                <label htmlFor="filename">Filename</label>
+                <label htmlFor="file">File</label>
                 <input
-                    id="filename"
-                    name="filename"
+                    id="file"
+                    name="file"
                     type="file"
-                    value={this.props.filename}
-                    onChange={this.props._handleFilenameChange}
+                    value={this.props.file}
+                    onChange={this.props._handleFileChange}
                 />
                 <Gender 
                     value={this.props.gender}
