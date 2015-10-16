@@ -3,7 +3,7 @@
 var Upload = React.createClass({
     render: function() {
         return (
-        	<div>
+        	<div className="control -upload">
 	        	<label className="label" htmlFor="file">File</label>
 	            <input
 	                id="file"
