@@ -74,7 +74,7 @@ class mapFace(caffe.Net):
     Maps a batch of face images to their position in 
     feature space.
     '''
-    def __init__(self, model_file, pretrained_file, n_imgs=36):
+    def __init__(self, model_file, pretrained_file, n_imgs=1):
         '''
         model_file : the caffe model to use
         pretrained_file : array of model weights
