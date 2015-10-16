@@ -33,6 +33,9 @@ class ImageProcessorHandler(tornado.web.RequestHandler):
         self.face_mapper = api.neural_net_map.MapFace(caffe_net_model,
                                                       face_model)
 
+    def __init__(self, graph_ranking):
+        self.graph_ranking = graph_ranking
+
     @tornado.gen.coroutine
     def post(self):
         '''
@@ -89,7 +92,7 @@ class ImageProcessorHandler(tornado.web.RequestHandler):
         Outputs:
         (closest_celeb_id, dater_celeb_id)
         '''
-        return  graph_ranking.find_dating(sig, gender)
+        return  self.graph_ranking.find_dating(sig, gender)
 
     @tornado.gen.coroutine
     def finish_response(self, closest_celeb_id, dater_celeb_id):
@@ -143,7 +146,7 @@ def main():
                                  options.username, options.password,
                                  options.celebrity_model)
     application = tornado.web.Application([
-        (r'/process', ImageProcessorHandler,
+        (r'/process', ImageProcessorHandler(graph_ranking),
          dict(haar_model=options.haar_model,
               caffe_net_model=options.caffe_net_model,
               face_model=options.face_model))
