@@ -1,30 +1,3 @@
-'''
-Defines the mapFace class. Inputs:
-    mapFace(model_file, pretrained_file, n_imgs)
-    
-    - instantiation input:
-        model_file = the prototext file
-        pretrained_file = the pretrained file (.caffemodel)
-        n_imgs = the number of images to batch at once.
-    
-    - calling:
-        mF = mapFace(...) # instantiate
-        out = mF(image_array_list)
-
-    - calling input:
-        where image_array_list is an N-element list of numpy
-        arrays representing input images. They must be BGR style,
-        although they are resized by the preprocessing script. 
-
-    - output:
-        An N-element list of 128-element vectors (as numpy arrays)
-
-NOTE:
-All of this is contingent on using BGR images in the openCV style!
-'''
-import matplotlib
-matplotlib.use('Agg') 
-
 import os
 from time import time
 import traceback
@@ -32,6 +5,8 @@ import sys
 import cv2
 import numpy as np
 from threading import Lock
+from cPickle import dump
+from glob import glob
 
 # this will prevent caffe from printing thousands
 # of lines to stderr
@@ -71,7 +46,7 @@ def _modify_proto(model_file, n_imgs):
         x.write(nf.strip())
     return nfn
     
-class MapFace(caffe.Net):
+class mapFace(caffe.Net):
     '''
     Maps a batch of face images to their position in 
     feature space.
@@ -134,26 +109,25 @@ class MapFace(caffe.Net):
         bgr_img = bgr_img.transpose(2, 0, 1)
         return bgr_img
 
+imgs = glob('/other/crops/*/*/*')
 
+pfx = '/media/nick/d216eb37-b0e1-478c-b170-2270d7699ea2/dbx/mridul_projects/'
+model_pre_tups = [('agenet_clusterloss/age_deploy.prototxt',
+                   ('agenet_clusterloss/snapshots/agenet_iter_48000.caffemodel',
+                    'agenet_clusterloss/snapshots/agenet_iter_54000.caffemodel')),
+                  ('googlenet_clusterloss/deploy.prototxt',
+                   ('agenet_clusterloss/snapshots/googlenet_iter_99000.caffemodel',
+                    'agenet_clusterloss/snapshots/googlenet_iter_177000.caffemodel'))]
+model_file = model_pre_tups[0][0]
+model_file = os.path.join(pfx, model_file)
+pretrained_file = model_pre_tups[0][1][0]
+pretrained_file = os.path.join(pfx, pretrained_file)
+mF = mapFace(model_file, pretrained_file)
 
-# # ----------  TESTING ---------- # 
-# pfx = '/media/nick/d216eb37-b0e1-478c-b170-2270d7699ea2/dbx/mridul_projects/'
-# model_pre_tups = [('agenet_clusterloss/age_deploy.prototxt',
-#                    ('agenet_clusterloss/snapshots/agenet_iter_48000.caffemodel',
-#                     'agenet_clusterloss/snapshots/agenet_iter_54000.caffemodel')),
-#                   ('googlenet_clusterloss/deploy.prototxt',
-#                    ('agenet_clusterloss/snapshots/googlenet_iter_99000.caffemodel',
-#                     'agenet_clusterloss/snapshots/googlenet_iter_177000.caffemodel'))]
-# model_file = model_pre_tups[0][0]
-# model_file = os.path.join(pfx, model_file)
-# pretrained_file = model_pre_tups[0][1][0]
-# pretrained_file = os.path.join(pfx, pretrained_file)
-# mF = mapFace(model_file, pretrained_file)
-
-# from glob import glob
-# imgs = glob('/data/mridul_data/images/*')
-# data_list = []
-# for i in imgs[:100]:
-#     data_list.append(cv2.imread(i))
-# out = mF(data_list)
-# # ---------- /TESTING ---------- #
+data = []
+for n, img in enumerate(imgs):
+    print '%i / %i'%(n, len(imgs))
+    celeb = img.split('/')[-2]
+    im = cv2.imread(img)
+    vec = mF([im])[0]
+    data.append([celeb, vec])
