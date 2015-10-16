@@ -20,7 +20,6 @@ var Gender = React.createClass({
                     value={this.props.gender}
                     className="dropdown"
                 >
-                    <option value="0">Either</option>
                     <option value="1">Men</option>
                     <option value="2">Women</option>
                 </select>
