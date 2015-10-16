@@ -2,7 +2,7 @@
 
 var Gender = React.createClass({
     propTypes: {
-        value: React.PropTypes.number.isRequired
+        gender: React.PropTypes.number.isRequired
     },
     _handleChange: function(e) {
         this.props.onChange(
@@ -17,7 +17,7 @@ var Gender = React.createClass({
                 <select
                     id="gender"
                     onChange={this._handleChange}
-                    value={this.props.value}
+                    value={this.props.gender}
                 >
                     <option value="0">Not Known</option>
                     <option value="1">Male</option>

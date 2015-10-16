@@ -18,13 +18,16 @@ var Form = React.createClass({
                     value={this.props.file}
                     onChange={this.props._handleFileChange}
                 />
+                <Thumbnail
+                    thumbnail={this.props.thumbnail}
+                />
                 <Gender 
-                    value={this.props.gender}
+                    gender={this.props.gender}
                     onChange={this.props._handleGenderChange}
                 />
                 <input
                     type="submit"
-                    value="Search"
+                    value="Match Me"
                 />
             </form>
         );

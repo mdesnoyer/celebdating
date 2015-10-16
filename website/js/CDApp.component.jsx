@@ -2,14 +2,16 @@
 
 var CDApp = React.createClass({
     propTypes: {
-    	value: React.PropTypes.number,
+    	gender: React.PropTypes.number,
     	file: React.PropTypes.string,
+        thumbnail: React.PropTypes.string,
     	step: React.PropTypes.number
     },
     getDefaultProps: function() {
         return {
         	gender: 2, // 0 = not known, 1 = male, 2 = female, 9 = not applicable
         	file: '',
+            thumbnail: '',
         	step: 1 // 1 = choose, 2 = processing, 3 = results, 4 = error
         };
     },
@@ -17,6 +19,7 @@ var CDApp = React.createClass({
         return {
         	gender: this.props.gender,
         	file: this.props.file,
+            thumbnail: this.props.thumbnail,
         	step: this.props.step,
         	class: 'cdapp state-' + this.props.step,
         	selection: {},
@@ -31,10 +34,12 @@ var CDApp = React.createClass({
     _handleFileChange: function(e) {
         var self = this,
             reader = new FileReader(),
-            file = e.target.files[0];
+            file = e.target.files[0]
+        ;
         reader.onload = function(upload) {
             self.setState({
                 file: upload.target.result,
+                thumbnail: upload.target.result
             });
         }
         reader.readAsDataURL(file);
@@ -101,6 +106,7 @@ var CDApp = React.createClass({
 	            		_handleGenderChange={this._handleGenderChange}
 	            		_handleSubmit={this._handleSubmit}
                         gender={this.state.gender}
+                        thumbnail={this.state.thumbnail}
 	            	/>
 	            </section>
 	            <section className="processing">
