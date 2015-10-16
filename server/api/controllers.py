@@ -9,6 +9,7 @@ if sys.path[0] != __base_path__:
 import cv2
 from api.face_extractor import FaceCropper
 import api.neural_net_map
+import model
 from model.person import Person
 import tornado.ioloop
 import tornado.gen
@@ -57,7 +58,7 @@ class ImageProcessorHandler(tornado.web.RequestHandler):
 
         returns a NxMx3 numpy array
         '''
-        pass
+        return image_response.post
 
     def find_faces(self, image):
         '''Extracts a face out of an image

@@ -45,7 +45,7 @@ class Person:
     def set_orientation(self, orientation)
         self.orientation = orientation
 
-class ImageResponse:
+class ImageHandler:
     @tornado.gen.coroutine
     def __init__(self, host, port, db_name, username, password):
         self.host = host
@@ -54,11 +54,25 @@ class ImageResponse:
         self.username = username
         self.password = password
 
+    @tornado.gen.coroutine
+    def post(self)
+        '''
+        Accepts an image and then sends it to be compared against 
+        celebrity faces.
+        '''
+        resp = urllib.urlopen(img_url)
+        image = np.asarray(bytearray(resp.read()), dtype="uint8")
+
+        image = cv2.imdecode(image, cv2.IMREAD_COLOR)
+        image = cv2.resize(image, (227, 227))
+        image = image[:,:,[2,1,0]]
+        image = image.transpose(2,0,1)
+
+        return image
+
     def list_matches(self, celeb_id, dater_id):
         '''
-        Queries the database for all the celebrity relationships.
-        Returns all the celebrities the original celebrity has dated, as well
-        as the original celebrity
+        Queries the database for the relevant celebrity images
         '''
         db = torndb.connect(self.host, self.user, self.password, self.name)
         
