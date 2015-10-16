@@ -30,8 +30,11 @@ html {
 	font-size: 10px;
 	background: 
 		radial-gradient(48% 133%, rgba(255, 255, 255, 0.6) 42%, rgba(178, 128, 148, 0.6) 100%),
-		url('../img/background.jpg') no-repeat 0 0;
-	background-size: cover;
+		url('../img/justin-bieber.png') no-repeat bottom right,	
+		url('../img/miley-cyrus.png') no-repeat bottom left,
+		url('../img/background.jpg') no-repeat top left
+	;
+	background-size: cover, auto, auto, cover;
 }
 
 b {
@@ -159,25 +162,4 @@ body {
 	display: block;
 	font-size: 1.618em;
 	text-align: left;
-}
-
-.celebrity {
-	background-size: cover;
-	position: fixed;
-	bottom: 0;
-}
-
-.celebrity-b {
-	width: 300px;
-	height: 300px;
-	right: 0;
-	background-image: url('../img/justin-bieber.png');	
-}
-
-.celebrity-a {
-	width: 400px;
-	height: 470px;
-	left: 0;
-	background-image: url('../img/miley-cyrus.png');
-	transform: scaleX(-1);
 }
