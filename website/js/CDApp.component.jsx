@@ -3,12 +3,14 @@
 var CDApp = React.createClass({
     propTypes: {
     	gender: React.PropTypes.string,
+        pronoun: React.PropTypes.string,
         thumbnail: React.PropTypes.string,
     	step: React.PropTypes.number
     },
     getDefaultProps: function() {
         return {
         	gender: '2', // 0 = not known, 1 = male, 2 = female, 9 = not applicable
+            pronoun: 'she',
             thumbnail: '',
         	step: 1 // 1 = choose, 2 = processing, 3 = results, 4 = error
         };
@@ -16,6 +18,7 @@ var CDApp = React.createClass({
     getInitialState: function() {
         return {
         	gender: this.props.gender,
+            pronoun: this.props.pronoun,
             thumbnail: this.props.thumbnail,
         	step: this.props.step,
         	class: 'cdapp state-' + this.props.step,
@@ -24,8 +27,24 @@ var CDApp = React.createClass({
         };
     },
     _handleGenderChange: function(gender) {
+        var pronoun = '';
+        switch (gender) {
+            case "0":
+                pronoun = 'they';
+                break;
+            case "1":
+                pronoun = 'he';
+                break;
+            case "2":
+                pronoun = 'she';
+                break;
+            case "3":
+                pronoun = 'they';
+                break;
+        }
         this.setState({
-            gender: gender
+            gender: gender,
+            pronoun: pronoun
         });
     },
     _handleFileChange: function(e) {
@@ -81,7 +100,7 @@ var CDApp = React.createClass({
             }.bind(this)
         });*/
 		/* TEST */
-        var selection = { name: 'Peewee Herman', url: 'https://pbs.twimg.com/profile_images/362060137/Pee-wee_Twitter_Profile.png' },
+        var selection = { name: 'Hillary Clinton', url: 'http://a4.files.biography.com/image/upload/c_fill,cs_srgb,dpr_1.0,g_face,h_300,q_80,w_300/MTE4MDAzNDEwMDU4NTc3NDIy.jpg' },
         	alike = { name: 'Donald Trump', url: 'http://static6.businessinsider.com/image/55918b77ecad04a3465a0a63/nbc-fires-donald-trump-after-he-calls-mexicans-rapists-and-drug-runners.jpg' }
         ;
 		this.setState({
@@ -106,17 +125,20 @@ var CDApp = React.createClass({
 	            	/>
 	            </section>
 	            <section className="processing">
-	            	LOADING
+                    <div className="control -loading">
+	            	  <img src="img/ajax-loader.gif" alt="" title="" />
+                    </div>
 	            </section>
 	            <section className="results">
 	            	<Results
 	            		step={this.state.step}
 	            		selection={this.state.selection}
 	            		alike={this.state.alike}
+                        pronoun={this.state.pronoun}
 	            	/>
 	            </section>
 	            <section className="error">
-	            	ERROR
+	            	<p className="instructions">Sorry, our new service is being upgraded right now. Check back soon.</p>
 	            </section>
 	        </article>
         );
