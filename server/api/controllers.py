@@ -5,27 +5,29 @@ import sys
 __base_path__ = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if sys.path[0] != __base_path__:
     sys.path.insert(0, __base_path__)
+import signal 
 
-import cv2
-from api.face_extractor import FaceCropper
-import api.neural_net_map
-import model
-from model.person import Person
+#import cv2
+#from api.face_extractor import FaceCropper
+#import api.neural_net_map
+#import model
+from model import data_model
+
+import tornado.httpserver
 import tornado.ioloop
 import tornado.gen
 import tornado.web
 import tornado.options
 from tornado.options import define, options
 
-define("port", default=80, help="Service port")
+define("port", default=8083, help="Service port")
 define("haar_model", default="", help="File containing the Harr model")
-define("host", default="localhost", help="DB host")
-define("db_name", default="mydb", help="DB used")
-define("user", default="root", help="DB username")
-define("password", default="root", help="DB Password")
+#define("db_host", default="dateaceleb.cnvazyzlgq2v.us-east-1.rds.amazonaws.com", help="DB host")
+#define("db_name", default="celebs", help="DB name")
+#define("db_user", default="admin", help="DB username")
+#define("db_password", default="admin123", help="DB Password")
 define("caffe_net_model", default="", help="Caffe model")
 define("face_model", default="", help="Model weights for the face sigs")
-
 
 class ImageProcessorHandler(tornado.web.RequestHandler):
     """Handles the endpoints for the images. """
@@ -82,6 +84,7 @@ class ImageProcessorHandler(tornado.web.RequestHandler):
         # TODO(Nick): Make this asynchronous
         raise tornado.gen.Return(self.face_mapper([face]))
 
+    @tornado.gen.coroutine
     def match_face(self, sig, gender):
         '''Matches a face to the closest celeb and the most likely
            person to date you.
@@ -93,7 +96,7 @@ class ImageProcessorHandler(tornado.web.RequestHandler):
         Outputs:
         (closest_celeb_id, dater_celeb_id)
         '''
-        return  self.graph_ranking.find_dating(sig, gender)
+        raise tornado.gen.Return(self.graph_ranking.find_dating(sig, gender))
 
     @tornado.gen.coroutine
     def finish_response(self, closest_celeb_id, dater_celeb_id):
@@ -143,13 +146,15 @@ class ImageProcessorHandler(tornado.web.RequestHandler):
 
 def main():
     tornado.options.parse_command_line()
-
-    graph_ranking = GraphRanking(options.host, options.port, options.db_name,
-                                 options.username, options.password,
-                                 options.celebrity_model)
-
-    image_response = ImageResponse(options.host, options.port, options.db_name,
-                                   options.username, options.password)
+    graph_ranking = 123 
+    image_response = 123 
+    #graph_ranking = GraphRanking(options.host, options.port, options.db_name,
+    #                             options.username, options.password,
+    #                             options.celebrity_model)
+    
+    # what was this for?
+    #image_response = ImageResponse(options.host, options.port, options.db_name,
+    #                               options.username, options.password)
 
     application = tornado.web.Application([
         (r'/process', ImageProcessorHandler(graph_ranking),
@@ -157,7 +162,8 @@ def main():
               caffe_net_model=options.caffe_net_model,
               face_model=options.face_model))
         ], gzip=True)
-
+    
+    print 'running' 
     signal.signal(signal.SIGTERM, lambda sig, y: sys.exit(-sig))
     server = tornado.httpserver.HTTPServer(application)
     server.listen(options.port)

@@ -1,49 +1,58 @@
 #!/usr/bin/env python
-import cv2
-import json
-import MySQLdb
-import numpy as np
-import torndb
+#import cv2
+import os.path
+import sys
+__base_path__ = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if sys.path[0] != __base_path__:
+    sys.path.insert(0, __base_path__)
 
-class Person:
-    
-    def __init__(self, image, name, age, gender, orientation):
+import json
+#import MySQLdb
+import tornado.ioloop
+import tornado.gen
+import tornado.web
+import tornado.options
+import tornado_mysql
+from tornado.options import define, options
+#import numpy as np
+#import torndb
+
+#define("db_host", default="dateaceleb.cnvazyzlgq2v.us-east-1.rds.amazonaws.com", help="DB host")
+define("db_host", default="localhost", help="DB host")
+define("db_port", default="3306", help="DB host")
+define("db_name", default="celebs", help="DB name")
+define("db_user", default="admin", help="DB username")
+define("db_password", default="admin123", help="DB Password")
+
+class DBConnection(object):
+    @staticmethod 
+    @tornado.gen.coroutine 
+    def get_connection(): 
+        conn = yield tornado_mysql.connect(host=options.db_host, 
+                                           port=options.db_port, 
+                                           user=options.db_user, 
+                                           passwd=options.db_password, 
+                                           db=options.db_name) 
+        raise tornado.gen.Return(conn) 
+                                                       
+class Celebrity:
+    def __init__(self, 
+                 name, 
+                 image=None, 
+                 age=None, 
+                 gender=None, 
+                 orientation=None):
         self.images = []
-        self.images.append(image)
         self.name = name
         self.age = age
         self.gender = gender
         self.orientation = orientation
-
-    def get_images(self)
-        return self.images
-
-    def add_image(self, image):
-        self.images.append(image)
-
-    def get_name(self)
-        return self.name
-
-    def set_name(self, name)
-        self.name = name   
-
-    def get_age(self)
-        return self.age
-
-    def set_age(self, age)
-        self.age = age
-
-    def get_gender(self)
-        return self.gender
-
-    def set_gender(self, gender)
-        self.gender = gender
-
-    def get_orientation(self)
-        return self.orientation
-
-    def set_orientation(self, orientation)
-        self.orientation = orientation
+    
+    def get(self, celeb_id): 
+        conn = yield DBConnection.get_connection() 
+        cursor = conn.cursor()
+        yield cur.execute("SELECT * FROM celebrities WHERE celebrity_id = %d" % int(celeb_id))
+        #return self.images
 
 class ImageHandler:
     @tornado.gen.coroutine
@@ -55,7 +64,7 @@ class ImageHandler:
         self.password = password
 
     @tornado.gen.coroutine
-    def post(self)
+    def post(self):
         '''
         Accepts an image and then sends it to be compared against 
         celebrity faces.
