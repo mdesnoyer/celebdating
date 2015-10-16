@@ -8,6 +8,7 @@ if sys.path[0] != __base_path__:
 
 import cv2
 from api.face_extractor import FaceCropper
+import api.neural_net_map
 from model.person import Person
 import tornado.ioloop
 import tornado.gen
@@ -21,11 +22,16 @@ define("host", default="localhost", help="DB host")
 define("db_name", default="mydb", help="DB used")
 define("user", default="root", help="DB username")
 define("password", default="root", help="DB Password")
+define("caffe_net_model", default="", help="Caffe model")
+define("face_model", default="", help="Model weights for the face sigs")
+
 
 class ImageProcessorHandler(tornado.web.RequestHandler):
     """Handles the endpoints for the images. """
-    def initialize(self, haar_model):
+    def initialize(self, haar_model, caffe_net_model, face_model):
         self.face_cropper = FaceCropper(haar_model)
+        self.face_mapper = api.neural_net_map.MapFace(caffe_net_model,
+                                                      face_model)
     
     @tornado.gen.coroutine
     def post(self):
@@ -67,7 +73,10 @@ class ImageProcessorHandler(tornado.web.RequestHandler):
         Returns:
         Yx1 numpy vector of the signature
         '''
-        pass
+        # TODO(Nick): Check the dimensions of these arrays, 
+        #             the ordering may be messed up.
+        # TODO(Nick): Make this asynchronous
+        return self.face_mapper([face])
 
     @tornado.gen.coroutine
     def match_face(self, sig, gender)
@@ -133,9 +142,13 @@ class ImageProcessorHandler(tornado.web.RequestHandler):
 def main():
     tornado.options.parse_command_line()
 
-    graph_ranking = GraphRanking(host, port, db_name, username, password)
+    graph_ranking = GraphRanking(options.host, options.port, options.db_name, 
+                                 options.username, options.password)
     application = tornado.web.Application([
-        (r'/process', ImageProcessorHandler, dict(haar_model=options.haar_model))
+        (r'/process', ImageProcessorHandler, 
+         dict(haar_model=options.haar_model,
+              caffe_net_model=options.caffe_net_model,
+              face_model=options.face_model))
         ], gzip=True)
     
     signal.signal(signal.SIGTERM, lambda sig, y: sys.exit(-sig))
