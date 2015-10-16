@@ -13,11 +13,12 @@ var Gender = React.createClass({
         // 0 = not known, 1 = male, 2 = female, 9 = not applicable
         return (
             <div className="control -gender">
-                <label htmlFor="gender">I am interested in dating</label>
+                <label className="label" htmlFor="gender">I am interested in dating </label>
                 <select
                     id="gender"
                     onChange={this._handleChange}
                     value={this.props.gender}
+                    className="dropdown"
                 >
                     <option value="0">Either</option>
                     <option value="1">Men</option>
