@@ -22,7 +22,7 @@ def get_images(searchTerm):
   return urls
 
 def get_20_imgs(searchTerm):
-  dest = '/Users/deborahjohnson/Desktop/celebrities'
+  dest = '/Users/neon/Desktop/celebrities'
   dest = os.path.join(dest, searchTerm.replace(' ', '_'))
   try:
     os.mkdir(dest)

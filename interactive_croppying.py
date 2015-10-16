@@ -36,9 +36,9 @@ class CropFaces:
     '''
     def __init__(self, haarRoot=None, haarCascade=None):
         if haarRoot == None:
-            haarRoot = '/data/model_data/haar_cascades'
+            haarRoot = '/Users/neon/Desktop'
         if haarCascade == None:
-            haarCascade = 'haarcascade_frontalface_alt2.xml'
+            haarCascade = 'haar_cascade.xml'
         self.haarFile = os.path.join(haarRoot, haarCascade)
         self.haarParams = {'minNeighbors': 5, 'minSize': (50, 50), 'scaleFactor': 1.1}
         self.face_cascade = cv2.CascadeClassifier()
@@ -53,7 +53,6 @@ class CropFaces:
         return image
 
     def display_face(self, name, image, coords):
-        print 'display_face'
         imcp = image.copy()
         x, y, w, h = coords
         cv2.rectangle(imcp, (x,y),(x+w,y+h), (255,0,0), 2)
@@ -69,8 +68,9 @@ class CropFaces:
             return (None, None)
 
     def evaluate(self, person, filen, dest_filen):
-        print 'evaluate'
         image = cv2.imread(filen)
+        if image == None:
+            return True
         faces = self.face_cascade.detectMultiScale(
                             image, **self.haarParams)
         for f in faces:
@@ -83,18 +83,24 @@ class CropFaces:
         return True
 
     def iterate(self, photos):
-        print 'iterate'
         for person, filen, dest_filen in photos:
             if os.path.exists(dest_filen):
                 continue
+            if not os.path.exists(os.path.join(dest_filen.split('/')[-1])):
+                os.mkdir(os.path.join(dest_filen.split('/')[-1]))
             r = self.evaluate(person, filen, dest_filen)
             if r == False:
                 cv2.destroyAllWindows()
                 return
         cv2.destroyAllWindows()
 
-# haarRoot = '/opt/local/share/OpenCV/haarcascades/'
-# haarCascade = 'haarcascade_frontalface_alt2.xml'
-# cf = CropFaces()
-# lst = [('Lenna Whoever', '/other/celeb_DT/test.jpg', '/other/celeb_OUT/test.jpg')]
-# cf.iterate(lst)
+images = glob('/Users/neon/Desktop/celebrities/*/*')
+dest_dir = '/Users/neon/Desktop/cropped_celebs'
+# produce the list
+photos = []
+for i in images:
+    person = i.split('/')[-2]
+    dest = os.path.join(dest_dir, person, i.split('/')[-1])
+    photos.append((person, i, dest))
+cf = CropFaces()
+cf.iterate(lst)
