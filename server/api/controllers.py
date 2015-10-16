@@ -17,6 +17,10 @@ from tornado.options import define, options
 
 define("port", default=80, help="Service port")
 define("haar_model", default="", help="File containing the Harr model")
+define("host", default="localhost", help="DB host")
+define("db_name", default="mydb", help="DB used")
+define("user", default="root", help="DB username")
+define("password", default="root", help="DB Password")
 
 class ImageProcessorHandler(tornado.web.RequestHandler):
     """Handles the endpoints for the images. """
@@ -108,7 +112,8 @@ class ImageProcessorHandler(tornado.web.RequestHandler):
         Returns all the celebrities the original celebrity has dated, as well
         as the original celebrity.
         '''
-        db = torndb.connect(host, name, user, password)
+        db = torndb.connect(options.host, options.name, options.user,
+                            options.password)
 
 
         sql_id = "SELECT celebrity_id FROM celebrities WHERE name = '%s'" \
