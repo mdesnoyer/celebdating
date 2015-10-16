@@ -32,7 +32,7 @@ class ImageProcessorHandler(tornado.web.RequestHandler):
         self.face_cropper = FaceCropper(haar_model)
         self.face_mapper = api.neural_net_map.MapFace(caffe_net_model,
                                                       face_model)
-    
+
     @tornado.gen.coroutine
     def post(self):
         '''
@@ -73,14 +73,14 @@ class ImageProcessorHandler(tornado.web.RequestHandler):
         Returns:
         Yx1 numpy vector of the signature
         '''
-        # TODO(Nick): Check the dimensions of these arrays, 
+        # TODO(Nick): Check the dimensions of these arrays,
         #             the ordering may be messed up.
         # TODO(Nick): Make this asynchronous
         return self.face_mapper([face])
 
     @tornado.gen.coroutine
     def match_face(self, sig, gender)
-        '''Matches a face to the closest celeb and the most likely 
+        '''Matches a face to the closest celeb and the most likely
            person to date you.
 
         Inputs:
@@ -108,9 +108,9 @@ class ImageProcessorHandler(tornado.web.RequestHandler):
         '''
         data = []
         for person in persons:
-            data.append({ 'name':person.name, 'age':person.age, 
+            data.append({ 'name':person.name, 'age':person.age,
                           'gender':person.gender,
-                          'orientation':person.orientation}) 
+                          'orientation':person.orientation})
 
         return json.dumps(data)
 
@@ -142,15 +142,16 @@ class ImageProcessorHandler(tornado.web.RequestHandler):
 def main():
     tornado.options.parse_command_line()
 
-    graph_ranking = GraphRanking(options.host, options.port, options.db_name, 
-                                 options.username, options.password)
+    graph_ranking = GraphRanking(options.host, options.port, options.db_name,
+                                 options.username, options.password,
+                                 options.celebrity_model)
     application = tornado.web.Application([
-        (r'/process', ImageProcessorHandler, 
+        (r'/process', ImageProcessorHandler,
          dict(haar_model=options.haar_model,
               caffe_net_model=options.caffe_net_model,
               face_model=options.face_model))
         ], gzip=True)
-    
+
     signal.signal(signal.SIGTERM, lambda sig, y: sys.exit(-sig))
     server = tornado.httpserver.HTTPServer(application)
     server.listen(options.port)
