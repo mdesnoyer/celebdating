@@ -1,6 +1,9 @@
-.state-1 {
-    background-color: yellow;
-}
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+@import 'reset.css';
+@import 'helper.css';
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 .state-1 .processing,
 .state-1 .results,
@@ -17,18 +20,4 @@
    display: none;   
 }
 
-.state-2 {
-    background-color: orange;
-}
-
-.state-3 {
-    background-color: limegreen;
-}
-
-.state-4 {
-    background-color: red;
-}
-
-img {
-    max-width: 100px;
-}
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
