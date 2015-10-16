@@ -2,7 +2,7 @@
 
 var Gender = React.createClass({
     propTypes: {
-        gender: React.PropTypes.number.isRequired
+        gender: React.PropTypes.string.isRequired
     },
     _handleChange: function(e) {
         this.props.onChange(
@@ -13,16 +13,16 @@ var Gender = React.createClass({
         // 0 = not known, 1 = male, 2 = female, 9 = not applicable
         return (
             <div className="control -gender">
-                <label htmlFor="gender">Gender</label>
+                <label className="label" htmlFor="gender">I am interested in dating </label>
                 <select
                     id="gender"
                     onChange={this._handleChange}
                     value={this.props.gender}
+                    className="dropdown"
                 >
-                    <option value="0">Not Known</option>
-                    <option value="1">Male</option>
-                    <option value="2">Female</option>
-                    <option value="9">Not Applicable</option>
+                    <option value="0">Either</option>
+                    <option value="1">Men</option>
+                    <option value="2">Women</option>
                 </select>
             </div>
         );
