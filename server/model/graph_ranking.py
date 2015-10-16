@@ -25,17 +25,22 @@ class GraphRanking(object):
                             ON celebrities.celebrity_id=dated.celebrity_id;''')
             result = con.user_result()
 
-            for celeb in self.celebrities:
-                celeb_id = celeb["id"]
-                celeb_gender = celeb["gender"]
-                distance_dated = {}
-                for dated in celeb["dated"]:
-                    dated_id = dated["id"]
-                    self.celeb_id_array.append(celeb_id)
-                    self.dated_id_array.append(dated_id)
-                    self.celeb_gender_array.append(celeb_gender)
+            for (celeb_id, celeb_gender, dated_id) in result:
+                self.celeb_id_array.append(celeb_id)
+                self.dated_id_array.append(dated_id)
+                self.celeb_gender_array.append(celeb_gender)
 
-                    all_face_array.append(dated['data'])
+            # for celeb in self.celebrities:
+            #     celeb_id = celeb["id"]
+            #     celeb_gender = celeb["gender"]
+            #     for dated in celeb["dated"]:
+            #         dated_id = dated["id"]
+            #         self.celeb_id_array.append(celeb_id)
+            #         self.dated_id_array.append(dated_id)
+            #         self.celeb_gender_array.append(celeb_gender)
+            #
+            #         all_face_array.append(dated['data'])
+
             self.all_face_matrix = np.array(all_face_array)
 
         except _mysql.Error, e:
@@ -46,9 +51,6 @@ class GraphRanking(object):
                 con.close()
         print "Data loaded."
 
-
-    def get_distance(vector_1, vector_2):
-        return norm(vector_1 - vector_2)
 
     def find_dating(self, user_face_data, user_prefer_gender):
         '''
