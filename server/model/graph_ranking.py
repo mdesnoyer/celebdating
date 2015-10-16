@@ -1,6 +1,7 @@
 import numpy as np
 from numpy.linalg import norm
 from sets import Set
+import _mysql
 
 #_log = logging.getLogger(__name__)
 
@@ -8,23 +9,42 @@ from sets import Set
 #
 class GraphRanking(object):
     def __init__(self, celebrities):
+        print "loading data..."
         self.celebrities = celebrities
         self.celeb_id_array = []
         self.dated_id_array = []
         self.celeb_gender_array = []
         all_face_array = []
-        for celeb in self.celebrities:
-            celeb_id = celeb["id"]
-            celeb_gender = celeb["gender"]
-            distance_dated = {}
-            for dated in celeb["dated"]:
-                dated_id = dated["id"]
-                self.celeb_id_array.append(celeb_id)
-                self.dated_id_array.append(dated_id)
-                self.celeb_gender_array.append(celeb_gender)
 
-                all_face_array.append(dated['data'])
-        self.all_face_matrix = np.array(all_face_array)
+        try:
+            con = _mysql.connect('dateaceleb.cnvazyzlgq2v.us-east-1.rds.amazonaws.com',
+                                 'admin', 'admin123', 'celebs')
+            con.query('''SELECT celebrities.celebrity_id, celebrities.gender, dated.dated_id
+                            FROM celebrities
+                            INNER JOIN dated
+                            ON celebrities.celebrity_id=dated.celebrity_id;''')
+            result = con.user_result()
+
+            for celeb in self.celebrities:
+                celeb_id = celeb["id"]
+                celeb_gender = celeb["gender"]
+                distance_dated = {}
+                for dated in celeb["dated"]:
+                    dated_id = dated["id"]
+                    self.celeb_id_array.append(celeb_id)
+                    self.dated_id_array.append(dated_id)
+                    self.celeb_gender_array.append(celeb_gender)
+
+                    all_face_array.append(dated['data'])
+            self.all_face_matrix = np.array(all_face_array)
+
+        except _mysql.Error, e:
+            print "Error %d: %s" % (e.args[0], e.args[1])
+            sys.exit(1)
+        finally:
+            if  con:
+                con.close()
+        print "Data loaded."
 
 
     def get_distance(vector_1, vector_2):
