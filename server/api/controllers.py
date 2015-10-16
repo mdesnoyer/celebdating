@@ -79,7 +79,7 @@ class ImageProcessorHandler(tornado.web.RequestHandler):
         return self.face_mapper([face])
 
     @tornado.gen.coroutine
-    def match_face(self, sig, gender)
+    def match_face(self, sig, gender):
         '''Matches a face to the closest celeb and the most likely
            person to date you.
 
@@ -92,7 +92,7 @@ class ImageProcessorHandler(tornado.web.RequestHandler):
         '''
         (celeb_id, dated_id) = graph_ranking.find_dating(sig, gender)
         (name, image) = yield finish_response(celeb_id, dated_id)
-        return (name, image)
+        raise tornado.gen.Return((name, image))
 
     @tornado.gen.coroutine
     def finish_response(self, closest_celeb_id, dater_celeb_id):
@@ -114,8 +114,8 @@ class ImageProcessorHandler(tornado.web.RequestHandler):
 
         return json.dumps(data)
 
-   @tornado.gen.coroutine
-   def list_matches(self, host, name, user, password, person):
+    @tornado.gen.coroutine
+    def list_matches(self, host, name, user, password, person):
         '''
         Queries the database for all the celebrity relationships.
         Returns all the celebrities the original celebrity has dated, as well
