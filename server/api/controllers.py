@@ -7,6 +7,7 @@ if sys.path[0] != __base_path__:
     sys.path.insert(0, __base_path__)
 
 import cv2
+from api.face_extractor import FaceCropper
 from model.person import Person
 import tornado.ioloop
 import tornado.gen
@@ -15,11 +16,12 @@ import tornado.options
 from tornado.options import define, options
 
 define("port", default=80, help="Service port")
+define("haar_model", default="", help="File containing the Harr model")
 
 class ImageProcessorHandler(tornado.web.RequestHandler):
     """Handles the endpoints for the images. """
-    def initialize(self):
-        pass
+    def initialize(self, haar_model):
+        self.face_cropper = FaceCropper(haar_model)
     
     @tornado.gen.coroutine
     def post(self):
@@ -49,7 +51,7 @@ class ImageProcessorHandler(tornado.web.RequestHandler):
 
         returns a list of [NxMx3] images of the faces in the image
         '''
-        pass
+        return self.face_cropper.extract_faces(image)
 
     @tornado.gen.coroutine
     def get_face_signature(self, face):
@@ -125,7 +127,7 @@ def main():
     tornado.options.parse_command_line()
 
     application = tornado.web.Application([
-        (r'/process', ImageProcessorHandler)
+        (r'/process', ImageProcessorHandler, dict(haar_model=options.haar_model))
         ], gzip=True)
     
     signal.signal(signal.SIGTERM, lambda sig, y: sys.exit(-sig))
