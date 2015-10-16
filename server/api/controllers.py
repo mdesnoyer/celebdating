@@ -16,8 +16,11 @@ from tornado.options import define, options
 
 define("port", default=80, help="Service port")
 
-class ImageProcessorHandler:
+class ImageProcessorHandler(tornado.web.RequestHandler):
     """Handles the endpoints for the images. """
+    def initialize(self):
+        pass
+    
     @tornado.gen.coroutine
     def post(self):
         '''
@@ -118,12 +121,12 @@ class ImageProcessorHandler:
 
         return json.dumps(data)
 
-application = tornado.web.Application([
-    (r'/process', ImageProcessorHandler)
-    ], gzip=True)
-
 def main():
     tornado.options.parse_command_line()
+
+    application = tornado.web.Application([
+        (r'/process', ImageProcessorHandler)
+        ], gzip=True)
     
     signal.signal(signal.SIGTERM, lambda sig, y: sys.exit(-sig))
     server = tornado.httpserver.HTTPServer(application)
