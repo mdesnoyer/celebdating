@@ -8,7 +8,13 @@ import _mysql
 # Data structure for celebrities and their dates.
 #
 class GraphRanking(object):
-    def __init__(self, host, port, db_name, username, password, celebrity_model_file):
+    def __init__(self,
+                 host = 'dateaceleb.cnvazyzlgq2v.us-east-1.rds.amazonaws.com',
+                 port = '3363',
+                 db_name = 'celebs',
+                 username = 'admin',
+                 password = 'admin123',
+                 celebrity_model_file = '/home/wiley/src/celebdating/server/model/celebdata'):
         self.host = host
         self.port = port
         self.db_name = db_name
@@ -64,6 +70,17 @@ class GraphRanking(object):
 
     def load_celebrity_model_file(self):
         face_data = np.load(self.celebrity_model_file)
+        face_dict = {}
+        face_count = {}
+        for face in face_data:
+            face_dict[face[0]] = face_dict.get(face[0], 0) + face[1]
+            face_count[face[0]] = face_count.get(face[0], 0) + 1
+        for (name, data) in face_dict.items():
+            face_dict[name] = data/face_count[name]
+        print face_dict
+
+        face_names = [x[0] for x in a]
+
         face_names = face.data.keys()
         self.dated_data = {}
         try:
@@ -76,7 +93,7 @@ class GraphRanking(object):
             result = con.user_result()
 
             for dated_id, face_name in zip(result, face_names):
-                self.dated_data[dated_id] = face_data[face_name]
+                self.dated_data[dated_id] = face_dict[face_name]
         except _mysql.Error, e:
             print "Error %d: %s" % (e.args[0], e.args[1])
             sys.exit(1)

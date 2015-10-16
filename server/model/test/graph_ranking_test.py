@@ -75,5 +75,9 @@ class TestGraphRanking(unittest.TestCase):
         self.assertEqual(celeb_id, 'c2')
         self.assertEqual(dated_id, 'd3')
 
+    def test_load_celebrity_model_file(self):
+        gr = graph_ranking.GraphRanking(self.celebrities)
+        gr.load_celebrity_model_file()
+
 def main():
     unittest.main()
