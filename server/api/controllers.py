@@ -76,9 +76,8 @@ class ImageProcessorHandler(tornado.web.RequestHandler):
         # TODO(Nick): Check the dimensions of these arrays,
         #             the ordering may be messed up.
         # TODO(Nick): Make this asynchronous
-        return self.face_mapper([face])
+        raise tornado.gen.Return(self.face_mapper([face]))
 
-    @tornado.gen.coroutine
     def match_face(self, sig, gender)
         '''Matches a face to the closest celeb and the most likely
            person to date you.
@@ -90,9 +89,7 @@ class ImageProcessorHandler(tornado.web.RequestHandler):
         Outputs:
         (closest_celeb_id, dater_celeb_id)
         '''
-        (celeb_id, dated_id) = graph_ranking.find_dating(sig, gender)
-        (name, image) = yield finish_response(celeb_id, dated_id)
-        return (name, image)
+        return  graph_ranking.find_dating(sig, gender)
 
     @tornado.gen.coroutine
     def finish_response(self, closest_celeb_id, dater_celeb_id):
