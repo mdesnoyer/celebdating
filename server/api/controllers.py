@@ -8,6 +8,7 @@ if sys.path[0] != __base_path__:
 
 import cv2
 from api.face_extractor import FaceCropper
+import api.neural_net_map
 from model.person import Person
 import tornado.ioloop
 import tornado.gen
@@ -17,12 +18,24 @@ from tornado.options import define, options
 
 define("port", default=80, help="Service port")
 define("haar_model", default="", help="File containing the Harr model")
+define("host", default="localhost", help="DB host")
+define("db_name", default="mydb", help="DB used")
+define("user", default="root", help="DB username")
+define("password", default="root", help="DB Password")
+define("caffe_net_model", default="", help="Caffe model")
+define("face_model", default="", help="Model weights for the face sigs")
+
 
 class ImageProcessorHandler(tornado.web.RequestHandler):
     """Handles the endpoints for the images. """
-    def initialize(self, haar_model):
+    def initialize(self, haar_model, caffe_net_model, face_model):
         self.face_cropper = FaceCropper(haar_model)
-    
+        self.face_mapper = api.neural_net_map.MapFace(caffe_net_model,
+                                                      face_model)
+
+    def __init__(self, graph_ranking):
+        self.graph_ranking = graph_ranking
+
     @tornado.gen.coroutine
     def post(self):
         '''
@@ -63,52 +76,31 @@ class ImageProcessorHandler(tornado.web.RequestHandler):
         Returns:
         Yx1 numpy vector of the signature
         '''
-        pass
+        # TODO(Nick): Check the dimensions of these arrays,
+        #             the ordering may be messed up.
+        # TODO(Nick): Make this asynchronous
+        raise tornado.gen.Return(self.face_mapper([face]))
 
-    @tornado.gen.coroutine
-    def match_face(self, sig)
-        '''Matches a face to the closest celeb and the most likely person to date.
+    def match_face(self, sig, gender):
+        '''Matches a face to the closest celeb and the most likely
+           person to date you.
 
         Inputs:
         Yx1 numpy vector that is the face signature
+        Gender you prefer to date
 
         Outputs:
         (closest_celeb_id, dater_celeb_id)
         '''
-        pass
+        return  self.graph_ranking.find_dating(sig, gender)
 
     @tornado.gen.coroutine
     def finish_response(self, closest_celeb_id, dater_celeb_id):
         '''Finishes the response to send back to the user.'''
-        pass
+        return self.image_response.list_matches(closest_celeb_id, 
+                                                dater_celeb_id) 
     ############ Functions below here are old and might not be needed ######
 
-    @tornado.gen.coroutine
-    def list_matches(self, p):
-        '''
-        Queries the database for all the celebrity relationships.
-        Returns all the celebrities the original celebrity has dated, as well
-        as the original celebrity.
-        '''
-        #TODO: Add setup information
-        db = MYSQLdb.connect("INFORMATION")
-
-        cursor = db.cursor()
-
-        sql = "SELECT name1 FROM tableWHERE name2 = '%s' UNION \
-               SELECT name2 FROM table WHERE name1 = '%s'" \
-               % (p.get_name, p.get_name)
-        cursor.execute(sql)
-        results = cursor.fetchall()
-       
-        names = []
-        names.append(p.get_name)
-        for row in results:
-           names.append(row[0])
-        
-        db.close()
-
-        return names
 
     @tornado.gen.coroutine
     def to_json(self, *persons):
@@ -117,19 +109,54 @@ class ImageProcessorHandler(tornado.web.RequestHandler):
         '''
         data = []
         for person in persons:
-            data.append({ 'name':person.name, 'age':person.age, 
+            data.append({ 'name':person.name, 'age':person.age,
                           'gender':person.gender,
-                          'orientation':person.orientation}) 
+                          'orientation':person.orientation})
 
         return json.dumps(data)
+
+    @tornado.gen.coroutine
+    def list_matches(self, host, name, user, password, person):
+        '''
+        Queries the database for all the celebrity relationships.
+        Returns all the celebrities the original celebrity has dated, as well
+        as the original celebrity.
+        '''
+        db = torndb.connect(options.host, options.name, options.user,
+                            options.password)
+
+
+        sql_id = "SELECT celebrity_id FROM celebrities WHERE name = '%s'" \
+                 %(person.get_name)
+
+        celeb_id = db.get(sql_id)
+
+        sql_name = "SELECT dated_id FROM dated WHERE celebrity_id = '%s'" \
+                 % (celeb_id)
+
+        name = db.get(sql_name)
+
+        db.close()
+
+        return name
 
 def main():
     tornado.options.parse_command_line()
 
+    graph_ranking = GraphRanking(options.host, options.port, options.db_name,
+                                 options.username, options.password,
+                                 options.celebrity_model)
+
+    image_response = ImageResponse(options.host, options.port, options.db_name,
+                                   options.username, options.password)
+
     application = tornado.web.Application([
-        (r'/process', ImageProcessorHandler, dict(haar_model=options.haar_model))
+        (r'/process', ImageProcessorHandler(graph_ranking),
+         dict(haar_model=options.haar_model,
+              caffe_net_model=options.caffe_net_model,
+              face_model=options.face_model))
         ], gzip=True)
-    
+
     signal.signal(signal.SIGTERM, lambda sig, y: sys.exit(-sig))
     server = tornado.httpserver.HTTPServer(application)
     server.listen(options.port)

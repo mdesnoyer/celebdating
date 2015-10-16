@@ -8,7 +8,13 @@ import _mysql
 # Data structure for celebrities and their dates.
 #
 class GraphRanking(object):
-    def __init__(self, celebrities):
+    def __init__(self, host, port, db_name, username, password, celebrity_model_file):
+        self.host = host
+        self.port = port
+        self.db_name = db_name
+        self.username = username
+        self.password = password
+        self.celebrity_model_file = celebrity_model_file
         print "loading data..."
         self.celebrities = celebrities
         self.celeb_id_array = []
@@ -16,26 +22,36 @@ class GraphRanking(object):
         self.celeb_gender_array = []
         all_face_array = []
 
+        self.load_celebrity_model_file()
+
         try:
-            con = _mysql.connect('dateaceleb.cnvazyzlgq2v.us-east-1.rds.amazonaws.com',
-                                 'admin', 'admin123', 'celebs')
+            # con = _mysql.connect('dateaceleb.cnvazyzlgq2v.us-east-1.rds.amazonaws.com',
+            #                      'admin', 'admin123', 'celebs')
+            con = mysql.connect(self.host, self.username, self.password, self.db_name)
             con.query('''SELECT celebrities.celebrity_id, celebrities.gender, dated.dated_id
                             FROM celebrities
                             INNER JOIN dated
                             ON celebrities.celebrity_id=dated.celebrity_id;''')
             result = con.user_result()
 
-            for celeb in self.celebrities:
-                celeb_id = celeb["id"]
-                celeb_gender = celeb["gender"]
-                distance_dated = {}
-                for dated in celeb["dated"]:
-                    dated_id = dated["id"]
-                    self.celeb_id_array.append(celeb_id)
-                    self.dated_id_array.append(dated_id)
-                    self.celeb_gender_array.append(celeb_gender)
+            all_face_array = []
+            for (celeb_id, celeb_gender, dated_id) in result:
+                self.celeb_id_array.append(celeb_id)
+                self.dated_id_array.append(dated_id)
+                self.celeb_gender_array.append(celeb_gender)
+                all_face_array.append(self.dated_data[dated_id])
 
-                    all_face_array.append(dated['data'])
+            # for celeb in self.celebrities:
+            #     celeb_id = celeb["id"]
+            #     celeb_gender = celeb["gender"]
+            #     for dated in celeb["dated"]:
+            #         dated_id = dated["id"]
+            #         self.celeb_id_array.append(celeb_id)
+            #         self.dated_id_array.append(dated_id)
+            #         self.celeb_gender_array.append(celeb_gender)
+            #
+            #         all_face_array.append(dated['data'])
+
             self.all_face_matrix = np.array(all_face_array)
 
         except _mysql.Error, e:
@@ -46,9 +62,29 @@ class GraphRanking(object):
                 con.close()
         print "Data loaded."
 
+    def load_celebrity_model_file(self):
+        face_data = np.load(self.celebrity_model_file)
+        face_names = face.data.keys()
+        self.dated_data = {}
+        try:
+            con = mysql.connect(self.host, self.username, self.password, self.db_name)
+            q_string = '''SELECT dated_id
+                            FROM dated
+                            WHERE name IN {0};'''
+            query_string = q_string.format(', '.join(face_names))
+            con.query(query_string)
+            result = con.user_result()
 
-    def get_distance(vector_1, vector_2):
-        return norm(vector_1 - vector_2)
+            for dated_id, face_name in zip(result, face_names):
+                self.dated_data[dated_id] = face_data[face_name]
+        except _mysql.Error, e:
+            print "Error %d: %s" % (e.args[0], e.args[1])
+            sys.exit(1)
+        finally:
+            if  con:
+                con.close()
+
+
 
     def find_dating(self, user_face_data, user_prefer_gender):
         '''
