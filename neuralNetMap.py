@@ -22,6 +22,8 @@ Defines the mapFace class. Inputs:
 NOTE:
 All of this is contingent on using BGR images in the openCV style!
 '''
+import matplotlib
+matplotlib.use('Agg') 
 
 import os
 from time import time
