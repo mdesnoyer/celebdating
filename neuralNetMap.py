@@ -29,6 +29,7 @@ import traceback
 import sys
 import cv2
 import numpy as np
+from threading import Lock
 
 # this will prevent caffe from printing thousands
 # of lines to stderr
@@ -85,6 +86,7 @@ class mapFace(caffe.Net):
         print 'GPU Instantiated'
         self.image_dims = [227, 227]
         self.image_mean = np.array([104,117,123])
+        self.lock = Lock()
 
     def __call__(self, data_list):
         '''
@@ -106,7 +108,8 @@ class mapFace(caffe.Net):
                 str(type(data_array)), str(np.__name__)))
         if data_array.dtype != np.dtype('float32'):
             raise ValueError("data_array must be float32")
-        out = self.forward_all(**{self.inputs[0]: data_array})
+        with self.lock:
+            out = self.forward_all(**{self.inputs[0]: data_array})
         #predictions = np.exp(out[self.outputs[0]])
         return list(out[self.outputs[0]])
 
