@@ -68,9 +68,11 @@ class GraphRanking(object):
         self.dated_data = {}
         try:
             con = mysql.connect(self.host, self.username, self.password, self.db_name)
-            con.query('''SELECT dated_id
+            q_string = '''SELECT dated_id
                             FROM dated
-                            WHERE name IN (%s);''', face_names)
+                            WHERE name IN {0};'''
+            query_string = q_string.format(', '.join(face_names))
+            con.query(query_string)
             result = con.user_result()
 
             for dated_id, face_name in zip(result, face_names):
