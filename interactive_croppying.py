@@ -80,14 +80,19 @@ class CropFaces:
                 return True
             if r[0] == None:
                 return False
+        cv2.imwrite(dest_filen.replace('crop_celebs','uncrop_celebs'), image)
         return True
 
     def iterate(self, photos):
         for person, filen, dest_filen in photos:
             if os.path.exists(dest_filen):
                 continue
-            if not os.path.exists(os.path.join(dest_filen.split('/')[-1])):
-                os.mkdir(os.path.join(dest_filen.split('/')[-1]))
+            destc = os.path.join(dest_filen.split('/')[-1])
+            bdestc = os.path.join(dest_filen.split('/')[-1]).replace('crop_celebs','uncrop_celebs')
+            if not os.path.exists(destc):
+                os.mkdir(destc)
+            if not os.path.exists(bdestc):
+                os.mkdir(bdestc)
             r = self.evaluate(person, filen, dest_filen)
             if r == False:
                 cv2.destroyAllWindows()
@@ -95,7 +100,7 @@ class CropFaces:
         cv2.destroyAllWindows()
 
 images = glob('/Users/neon/Desktop/celebrities/*/*')
-dest_dir = '/Users/neon/Desktop/cropped_celebs'
+dest_dir = '/Users/neon/Desktop/crop_celebs'
 # produce the list
 photos = []
 for i in images:

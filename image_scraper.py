@@ -32,4 +32,15 @@ def get_20_imgs(searchTerm):
   for n,u in enumerate(urls):
     print 'Saving %i image'%(n)
     filetype = u.split('.')[-1]
-    urllib.urlretrieve(u, os.path.join(dest, str(n)) + '.' + filetype)
+    filetype = filetype.split('/')[0]
+    filetype = filetype.split('.')[0]
+    filetype = filetype.split('?')[0]
+    try:
+      urllib.urlretrieve(u, os.path.join(dest, str(n)) + '.' + filetype)
+    except:
+      pass
+
+f = open('/Users/neon/Desktop/celeb_2dl').read().split('\n')
+for n,i in enumerate(f):
+  print 'Getting %i/%i for %s'%(n, len(f), i)
+  get_20_imgs(i)
