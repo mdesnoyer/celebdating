@@ -8,6 +8,7 @@ if sys.path[0] != __base_path__:
 
 import cv2
 from api.face_extractor import FaceCropper
+import api.neural_net_map
 from model.person import Person
 import tornado.ioloop
 import tornado.gen
@@ -17,11 +18,15 @@ from tornado.options import define, options
 
 define("port", default=80, help="Service port")
 define("haar_model", default="", help="File containing the Harr model")
+define("caffe_net_model", default="", help="Caffe model")
+define("face_model", default="", help="Model weights for the face sigs")
 
 class ImageProcessorHandler(tornado.web.RequestHandler):
     """Handles the endpoints for the images. """
-    def initialize(self, haar_model):
+    def initialize(self, haar_model, caffe_net_model, face_model):
         self.face_cropper = FaceCropper(haar_model)
+        self.face_mapper = api.neural_net_map.MapFace(caffe_net_model,
+                                                      face_model)
     
     @tornado.gen.coroutine
     def post(self):
@@ -63,7 +68,10 @@ class ImageProcessorHandler(tornado.web.RequestHandler):
         Returns:
         Yx1 numpy vector of the signature
         '''
-        pass
+        # TODO(Nick): Check the dimensions of these arrays, 
+        #             the ordering may be messed up.
+        # TODO(Nick): Make this asynchronous
+        return self.face_mapper([face])
 
     @tornado.gen.coroutine
     def match_face(self, sig)

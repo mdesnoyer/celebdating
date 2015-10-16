@@ -69,7 +69,7 @@ def _modify_proto(model_file, n_imgs):
         x.write(nf.strip())
     return nfn
     
-class mapFace(caffe.Net):
+class MapFace(caffe.Net):
     '''
     Maps a batch of face images to their position in 
     feature space.
