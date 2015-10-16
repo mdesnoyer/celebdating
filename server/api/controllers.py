@@ -138,7 +138,10 @@ def main():
 
     graph_ranking = GraphRanking(host, port, db_name, username, password)
     application = tornado.web.Application([
-        (r'/process', ImageProcessorHandler, dict(haar_model=options.haar_model))
+        (r'/process', ImageProcessorHandler, 
+         dict(haar_model=options.haar_model,
+              caffe_net_model=options.caffe_net_model,
+              face_model=options.face_model))
         ], gzip=True)
     
     signal.signal(signal.SIGTERM, lambda sig, y: sys.exit(-sig))
