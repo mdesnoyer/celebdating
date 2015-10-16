@@ -89,12 +89,12 @@ class ImageProcessorHandler(tornado.web.RequestHandler):
         Outputs:
         (closest_celeb_id, dater_celeb_id)
         '''
-        return  graph_ranking.find_dating(sig, gender)
+        return graph_ranking.find_dating(sig, gender)
 
     @tornado.gen.coroutine
     def finish_response(self, closest_celeb_id, dater_celeb_id):
         '''Finishes the response to send back to the user.'''
-        pass
+        return image_response.list_matches(closest_celeb_id, dater_celeb_id) 
     ############ Functions below here are old and might not be needed ######
 
 
@@ -142,6 +142,10 @@ def main():
     graph_ranking = GraphRanking(options.host, options.port, options.db_name,
                                  options.username, options.password,
                                  options.celebrity_model)
+
+    image_response = ImageResponse(options.host, options.port, options.db_name,
+                                   options.username, options.password)
+
     application = tornado.web.Application([
         (r'/process', ImageProcessorHandler,
          dict(haar_model=options.haar_model,
