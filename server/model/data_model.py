@@ -46,5 +46,3 @@ class Person:
 
     def set_orientation(self, orientation)
         self.orientation = orientation
-
-
