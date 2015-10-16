@@ -10,13 +10,9 @@ var Form = React.createClass({
             <form
                 onSubmit={this._handleSubmit}
             >
-                <label htmlFor="file">File</label>
-                <input
-                    id="file"
-                    name="file"
-                    type="file"
-                    value={this.props.file}
-                    onChange={this.props._handleFileChange}
+                <legend className="instructions">Upload a photo of yourself and we&rsquo;ll tell you which celebrity you match with based on who they&rsquo;ve dated.</legend>
+                <Upload
+                    _handleFileChange={this.props._handleFileChange}
                 />
                 <Thumbnail
                     thumbnail={this.props.thumbnail}
@@ -25,9 +21,9 @@ var Form = React.createClass({
                     gender={this.props.gender}
                     onChange={this.props._handleGenderChange}
                 />
-                <input
-                    type="submit"
-                    value="Match Me"
+                <Go
+                    gender={this.props.gender}
+                    thumbnail={this.props.thumbnail}
                 />
             </form>
         );
