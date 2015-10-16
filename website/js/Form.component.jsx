@@ -13,6 +13,7 @@ var Form = React.createClass({
                 <legend className="instructions">Upload a photo of yourself and we&rsquo;ll tell you which celebrity you match with based on who they&rsquo;ve dated.</legend>
                 <Upload
                     _handleFileChange={this.props._handleFileChange}
+                    thumbnail={this.props.thumbnail}
                 />
                 <Thumbnail
                     thumbnail={this.props.thumbnail}

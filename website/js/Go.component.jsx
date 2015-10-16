@@ -4,9 +4,9 @@ var Go = React.createClass({
     render: function() {
     	if (this.props.gender !== '' && this.props.thumbnail !== '') {
 	        return (
-	        	<div className="control -primary">
+	        	<div className="control -go">
 		            <input
-		                className="primary"
+		                className="button -primary"
 		                type="submit"
 		                value="Match Me"
 		            />
