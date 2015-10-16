@@ -78,7 +78,7 @@ class ImageProcessorHandler(tornado.web.RequestHandler):
         # TODO(Nick): Make this asynchronous
         raise tornado.gen.Return(self.face_mapper([face]))
 
-    def match_face(self, sig, gender)
+    def match_face(self, sig, gender):
         '''Matches a face to the closest celeb and the most likely
            person to date you.
 
