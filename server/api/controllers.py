@@ -5,14 +5,17 @@ import sys
 __base_path__ = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if sys.path[0] != __base_path__:
     sys.path.insert(0, __base_path__)
-import signal 
 
-#import cv2
-#from api.face_extractor import FaceCropper
+from api.face_extractor import FaceCropper
+import cgi 
+import cv2
+import json
 #import api.neural_net_map
 #import model
 from model import data_model
+import numpy as np
 
+import signal 
 import tornado.httpserver
 import tornado.ioloop
 import tornado.gen
@@ -22,22 +25,33 @@ from tornado.options import define, options
 
 define("port", default=8083, help="Service port")
 define("haar_model", default="", help="File containing the Harr model")
-#define("db_host", default="dateaceleb.cnvazyzlgq2v.us-east-1.rds.amazonaws.com", help="DB host")
-#define("db_name", default="celebs", help="DB name")
-#define("db_user", default="admin", help="DB username")
-#define("db_password", default="admin123", help="DB Password")
 define("caffe_net_model", default="", help="Caffe model")
 define("face_model", default="", help="Model weights for the face sigs")
 
-class ImageProcessorHandler(tornado.web.RequestHandler):
-    """Handles the endpoints for the images. """
-    def initialize(self, haar_model, caffe_net_model, face_model):
-        self.face_cropper = FaceCropper(haar_model)
-        self.face_mapper = api.neural_net_map.MapFace(caffe_net_model,
-                                                      face_model)
+class ResponseCode(object):
+    HTTP_OK = 200
+    HTTP_BAD_REQUEST = 400
+    HTTP_UNAUTHORIZED = 401
+    HTTP_NOT_FOUND = 404
 
-    def __init__(self, graph_ranking):
-        self.graph_ranking = graph_ranking
+class APISender(object):
+    def success(self, data, code=ResponseCode.HTTP_OK):
+        self.set_status(code)
+        self.write(data)
+        self.finish()
+
+class APIHandler(tornado.web.RequestHandler, APISender):
+    def initialize(self):
+        self.set_header("Content-Type", "application/json")
+
+class ImageProcessorHandler(APIHandler):
+    """Handles the endpoints for the images. """
+        #self.face_cropper = FaceCropper(options.haar_model)
+        #self.face_mapper = api.neural_net_map.MapFace(options.caffe_net_model,
+        #                                              options.face_model)
+
+    #def __init__(self, graph_ranking):
+    #    self.graph_ranking = graph_ranking
 
     @tornado.gen.coroutine
     def post(self):
@@ -46,21 +60,47 @@ class ImageProcessorHandler(tornado.web.RequestHandler):
         gender - A string defining the gender
         file - base64 encoded version of the image
         '''
+
         im = self.get_image_from_request()
+        ''' 
+        TODO commenting for now, due to caffe issues 
+
         faces = self.find_faces(im)
         if len(faces) == 0:
             raise tornado.web.HTTPError(400, "Could not find a face")
         sig = yield self.get_face_signature(faces[0])
         closest_celeb_id, dater_celeb_id = yield match_face(sig)
+        ''' 
 
-        yield self.finish_response(closest_celeb_id, dater_celeb_id)
+        closest_celeb_id = 1 
+        dater_celeb_id = 2
+        matching_celeb = yield data_model.Celebrity.get(closest_celeb_id) 
+        would_date_me = yield data_model.Celebrity.get(dater_celeb_id)
 
+        if matching_celeb and would_date_me: 
+            rv = {} 
+            rv['closest_match'] = matching_celeb
+            rv['future_ex_spouse'] = would_date_me 
+            self.success(json.dumps(rv)) 
+        else: 
+            raise Exception('could not find a match') 
+          
     def get_image_from_request(self):
         '''Extracts the image from the http post request.
 
         returns a NxMx3 numpy array
         '''
-        return image_response.post
+        image_body = self.request.files['upload'][0]['body']
+
+        if not image_body: 
+            raise Exception('no image no work') 
+
+        image = np.asarray(bytearray(image_body), dtype="uint8")
+        image = cv2.imdecode(image, cv2.IMREAD_COLOR)
+        image = cv2.resize(image, (227, 227))
+        image = image[:,:,[2,1,0]]
+        image = image.transpose(2,0,1)
+        return image
 
     def find_faces(self, image):
         '''Extracts a face out of an image
@@ -103,47 +143,6 @@ class ImageProcessorHandler(tornado.web.RequestHandler):
         '''Finishes the response to send back to the user.'''
         return self.image_response.list_matches(closest_celeb_id, 
                                                 dater_celeb_id) 
-    ############ Functions below here are old and might not be needed ######
-
-
-    @tornado.gen.coroutine
-    def to_json(self, *persons):
-        '''
-        Sends back the data as JSON
-        '''
-        data = []
-        for person in persons:
-            data.append({ 'name':person.name, 'age':person.age,
-                          'gender':person.gender,
-                          'orientation':person.orientation})
-
-        return json.dumps(data)
-
-    @tornado.gen.coroutine
-    def list_matches(self, host, name, user, password, person):
-        '''
-        Queries the database for all the celebrity relationships.
-        Returns all the celebrities the original celebrity has dated, as well
-        as the original celebrity.
-        '''
-        db = torndb.connect(options.host, options.name, options.user,
-                            options.password)
-
-
-        sql_id = "SELECT celebrity_id FROM celebrities WHERE name = '%s'" \
-                 %(person.get_name)
-
-        celeb_id = db.get(sql_id)
-
-        sql_name = "SELECT dated_id FROM dated WHERE celebrity_id = '%s'" \
-                 % (celeb_id)
-
-        name = db.get(sql_name)
-
-        db.close()
-
-        return name
-
 def main():
     tornado.options.parse_command_line()
     graph_ranking = 123 
@@ -157,10 +156,7 @@ def main():
     #                               options.username, options.password)
 
     application = tornado.web.Application([
-        (r'/process', ImageProcessorHandler(graph_ranking),
-         dict(haar_model=options.haar_model,
-              caffe_net_model=options.caffe_net_model,
-              face_model=options.face_model))
+        (r'/process', ImageProcessorHandler)
         ], gzip=True)
     
     print 'running' 
